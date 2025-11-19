@@ -23,7 +23,7 @@ module fsm_controller #(
     localparam STATE_VEND    = 3'd3;
     localparam STATE_CHANGE  = 3'd4;
     localparam STATE_ERROR   = 3'd5;
-    localparam STATE_DONE    = 3'd6;
+    localparam STATE_THANK   = 3'd6;
 
     wire can_purchase;
     wire [7:0] next_credit_calc;
@@ -53,11 +53,13 @@ module fsm_controller #(
             case (state)
                 STATE_IDLE, STATE_CREDIT: begin
                     if (coin_pulse) begin
-                        if (credit + coin_value >= MAX_CREDIT)
-                            credit <= MAX_CREDIT[7:0];
-                        else
+                        if (credit + coin_value > MAX_CREDIT) begin
+                            error_flag <= 1'b1;
+                            state      <= STATE_ERROR;
+                        end else begin
                             credit <= credit + coin_value;
-                        state <= STATE_CREDIT;
+                            state  <= STATE_CREDIT;
+                        end
                     end else if (purchase_btn) begin
                         state <= STATE_CHECK;
                     end else begin
@@ -77,18 +79,18 @@ module fsm_controller #(
                 end
                 STATE_VEND: begin
                     vend_pulse <= 1'b1;
-                    state      <= STATE_CHANGE;
+                    state      <= STATE_THANK;
+                end
+                STATE_THANK: begin
+                    state <= STATE_CHANGE;
                 end
                 STATE_CHANGE: begin
                     change_due       <= change_calc_val;
                     credit           <= next_credit_calc;
                     change_returning <= (change_calc_val != 0);
-                    state            <= STATE_DONE;
+                    state            <= STATE_IDLE;
                 end
                 STATE_ERROR: begin
-                    state <= STATE_IDLE;
-                end
-                STATE_DONE: begin
                     state <= STATE_IDLE;
                 end
                 default: state <= STATE_IDLE;
