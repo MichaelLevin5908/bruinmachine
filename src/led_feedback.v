@@ -16,7 +16,7 @@ module led_feedback #(
     output reg  [7:0] leds
 );
     localparam STATE_CHANGE = 3'd4;
-    localparam STATE_THANK  = 3'd6;
+    localparam STATE_DONE   = 3'd6;
 
     reg [23:0] slow_counter;
     wire slow_tick = (slow_counter == 0);
@@ -76,7 +76,7 @@ module led_feedback #(
             leds[7:4] = blink_phase ? 4'b1111 : 4'b0000;
         end else if (anim_active) begin
             leds[7:4] = anim_pattern;
-        end else if (change_returning || ((state == STATE_THANK || state == STATE_CHANGE) && change_due != 0)) begin
+        end else if (change_returning || ((state == STATE_DONE || state == STATE_CHANGE) && change_due != 0)) begin
             leds[7:4] = change_due[3:0];
         end
     end
