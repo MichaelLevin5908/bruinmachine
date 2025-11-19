@@ -13,6 +13,7 @@ module vending_machine_top (
     output wire [3:0] digit1,
     output wire [3:0] digit0,
     output wire [3:0] stock_level,
+    output wire [7:0] leds,
     output wire       audio_out
 );
     // Debounce buttons
@@ -42,6 +43,7 @@ module vending_machine_top (
     // Inventory and pricing
     wire vend_pulse;
     wire [7:0] price;
+    wire [3:0] stock_available;
 
     inventory inv(
         .clk(clk),
@@ -50,7 +52,8 @@ module vending_machine_top (
         .item_select(sw_item),
         .vend_pulse(vend_pulse),
         .stock_level(stock_level),
-        .sold_out()
+        .sold_out(),
+        .stock_available(stock_available)
     );
 
     price_lookup prices(
@@ -83,6 +86,19 @@ module vending_machine_top (
         .change_due(change_due)
     );
 
+    led_feedback leds_out(
+        .clk(clk),
+        .rst(rst),
+        .state(state),
+        .vend_event(vend_pulse),
+        .error_event(error_flag),
+        .change_returning(change_returning),
+        .change_due(change_due),
+        .stock_available(stock_available),
+        .item_select(sw_item),
+        .leds(leds)
+    );
+
     // Display driver
     display_driver display(
         .credit(credit),
@@ -101,6 +117,7 @@ module vending_machine_top (
         .rst(rst),
         .vend_event(vend_pulse),
         .error_event(error_flag),
+        .item_select(sw_item),
         .audio_out(audio_out)
     );
 endmodule

@@ -10,7 +10,8 @@ module inventory #(
     input  wire [1:0]  item_select,
     input  wire        vend_pulse,
     output reg  [3:0]  stock_level,
-    output wire        sold_out
+    output wire        sold_out,
+    output reg  [3:0]  stock_available
 );
     reg [3:0] stock [ITEM_COUNT-1:0];
 
@@ -29,6 +30,9 @@ module inventory #(
 
     always @(*) begin
         stock_level = stock[item_select];
+        for (idx = 0; idx < ITEM_COUNT; idx = idx + 1) begin
+            stock_available[idx] = (stock[idx] != 0);
+        end
     end
 
     assign sold_out = (stock_level == 0);
