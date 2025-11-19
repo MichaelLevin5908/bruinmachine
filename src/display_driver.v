@@ -10,8 +10,9 @@ module display_driver (
     output reg  [3:0] digit0
 );
     localparam STATE_IDLE    = 3'd0;
+    localparam STATE_CHANGE  = 3'd4;
     localparam STATE_ERROR   = 3'd5;
-    localparam STATE_DONE    = 3'd6;
+    localparam STATE_THANK   = 3'd6;
 
     task automatic to_bcd;
         input  [7:0] value;
@@ -44,7 +45,13 @@ module display_driver (
             digit2 = 4'hE;
             digit1 = 4'h0;
             digit0 = 4'h0;
-        end else if (state == STATE_DONE) begin
+        end else if (state == STATE_CHANGE && change_due != 0) begin
+            to_bcd(change_due, hundreds, tens, ones);
+            digit3 = hundreds;
+            digit2 = tens;
+            digit1 = ones;
+            digit0 = 4'd0;
+        end else if (state == STATE_THANK) begin
             // "Done"
             digit3 = 4'hD;
             digit2 = 4'h0;
@@ -64,13 +71,6 @@ module display_driver (
                 digit0 = 4'd0;
             end
 
-            if (change_due != 0 && state == STATE_DONE) begin
-                to_bcd(change_due, hundreds, tens, ones);
-                digit3 = hundreds;
-                digit2 = tens;
-                digit1 = ones;
-                digit0 = 4'd0;
-            end
         end
     end
 endmodule
