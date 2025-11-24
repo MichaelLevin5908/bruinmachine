@@ -1,5 +1,7 @@
 // Top-level module connecting the vending machine controller blocks.
-module vending_machine_top (
+module vending_machine_top #(
+    parameter integer DEBOUNCE_MAX = 25000
+) (
     input  wire clk,
     input  wire rst,
     input  wire btn_coin1,
@@ -22,10 +24,10 @@ module vending_machine_top (
     wire db_coin5;
     wire db_purchase;
 
-    debounce db0(.clk(clk), .rst(rst), .noisy(btn_coin1), .clean(db_coin1));
-    debounce db1(.clk(clk), .rst(rst), .noisy(btn_coin2), .clean(db_coin2));
-    debounce db2(.clk(clk), .rst(rst), .noisy(btn_coin5), .clean(db_coin5));
-    debounce db3(.clk(clk), .rst(rst), .noisy(btn_purchase), .clean(db_purchase));
+    debounce #(.CNTR_MAX(DEBOUNCE_MAX)) db0(.clk(clk), .rst(rst), .noisy(btn_coin1), .clean(db_coin1));
+    debounce #(.CNTR_MAX(DEBOUNCE_MAX)) db1(.clk(clk), .rst(rst), .noisy(btn_coin2), .clean(db_coin2));
+    debounce #(.CNTR_MAX(DEBOUNCE_MAX)) db2(.clk(clk), .rst(rst), .noisy(btn_coin5), .clean(db_coin5));
+    debounce #(.CNTR_MAX(DEBOUNCE_MAX)) db3(.clk(clk), .rst(rst), .noisy(btn_purchase), .clean(db_purchase));
 
     // Coin detection
     wire coin_pulse;
