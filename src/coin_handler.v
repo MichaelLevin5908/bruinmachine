@@ -34,13 +34,13 @@ module coin_handler #(
 
             if (rise5) begin
                 coin_pulse <= 1'b1;
-                coin_value <= COIN5_VALUE[7:0];
+                coin_value <= COIN5_VALUE;
             end else if (rise2) begin
                 coin_pulse <= 1'b1;
-                coin_value <= COIN2_VALUE[7:0];
+                coin_value <= COIN2_VALUE;
             end else if (rise1) begin
                 coin_pulse <= 1'b1;
-                coin_value <= COIN1_VALUE[7:0];
+                coin_value <= COIN1_VALUE;
             end else begin
                 coin_pulse <= 1'b0;
                 coin_value <= 0;
