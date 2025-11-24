@@ -7,7 +7,21 @@ module debounce #(
     input  wire noisy,
     output reg  clean
 );
-    reg [$clog2(CNTR_MAX):0] counter;
+    // Verilog-2001 friendly clog2 replacement
+    function integer clog2;
+        input integer value;
+        integer i;
+        begin
+            value = value - 1;
+            for (i = 0; value > 0; i = i + 1)
+                value = value >> 1;
+            clog2 = i;
+        end
+    endfunction
+
+    localparam integer COUNTER_WIDTH = clog2(CNTR_MAX + 1);
+
+    reg [COUNTER_WIDTH-1:0] counter;
     reg sync_0;
     reg sync_1;
 
