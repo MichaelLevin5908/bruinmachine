@@ -7,8 +7,13 @@
 *.jou
 *.log
 *.str
+*.cache/
+*.hw/
+*.ip_user_files/
+*.sim/
 .Xil/
 vivado*.backup*
+vivado_project/
 
 # Build directories
 build/
