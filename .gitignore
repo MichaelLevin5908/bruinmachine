@@ -1,0 +1,15 @@
+# Compiled Verilog files
+*.vvp
+*.vcd
+*.lxt
+
+# Vivado files
+*.jou
+*.log
+*.str
+.Xil/
+vivado*.backup*
+
+# Build directories
+build/
+out/

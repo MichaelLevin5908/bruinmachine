@@ -97,6 +97,7 @@ module vending_machine_top_tb;
         sw_item <= 2'd2; // price 6 when stock high
         pulse_purchase();
         @(posedge dut.ctrl.error_flag);
+        @(posedge clk);
         check(dut.ctrl.state == 3'd5, "FSM enters ERROR state on insufficient funds");
         @(posedge clk);
         check(dut.ctrl.state == 3'd0, "FSM returns to IDLE after error handling");
