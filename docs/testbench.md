@@ -4,7 +4,7 @@ The `src/vending_machine_top_tb.v` bench provides a simple, self-checking simula
 
 ## How to run
 
-1. Build the simulation (requires a Verilog-2001/SystemVerilog-capable simulator such as `iverilog`). The testbench now passes the debounce length via the top-level parameter rather than `defparam`, which avoids hierarchical overrides that some simulators dislike:
+1. Build the simulation (requires a SystemVerilog-capable simulator such as `iverilog`):
 
    ```sh
    iverilog -g2012 -s vending_machine_top_tb -o sim_out src/*.v
@@ -17,7 +17,3 @@ The `src/vending_machine_top_tb.v` bench provides a simple, self-checking simula
    ```
 
 If your environment lacks `iverilog`, install it (e.g., `sudo apt-get install iverilog`) or use another simulator that supports SystemVerilog `defparam` syntax.
-
-### Vivado/XSim notes
-
-Vivado's default "Verilog" compilation mode will accept the bench as-is (it uses only Verilog-2001 constructs). If you see a missing compiler/tool error when launching simulation, ensure Vivado's GCC simulator toolchain is installed and on your PATH, or switch the simulation set to use the bundled XSim flow.

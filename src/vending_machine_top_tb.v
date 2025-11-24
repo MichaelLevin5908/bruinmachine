@@ -21,7 +21,7 @@ module vending_machine_top_tb;
     // Clock generation
     always #5 clk = ~clk; // 100 MHz equivalent
 
-    vending_machine_top #(.DEBOUNCE_MAX(2)) dut(
+    vending_machine_top dut(
         .clk(clk),
         .rst(rst),
         .btn_coin1(btn_coin1),
@@ -38,6 +38,12 @@ module vending_machine_top_tb;
         .leds(leds),
         .audio_out(audio_out)
     );
+
+    // Shorten debounce delay for simulation
+    defparam dut.db0.CNTR_MAX = 2;
+    defparam dut.db1.CNTR_MAX = 2;
+    defparam dut.db2.CNTR_MAX = 2;
+    defparam dut.db3.CNTR_MAX = 2;
 
     integer errors = 0;
 
@@ -57,7 +63,7 @@ module vending_machine_top_tb;
         end
     endtask
 
-    task check(input condition, input [256:0] message);
+    task check(input bit condition, input [256:0] message);
         begin
             if (!condition) begin
                 errors = errors + 1;
