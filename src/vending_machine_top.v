@@ -1,4 +1,5 @@
 // Top-level module connecting the vending machine controller blocks.
+// Designed for Basys 3 board with Vivado 2023.2.
 module vending_machine_top #(
     parameter integer DEBOUNCE_MAX = 25000
 ) (
@@ -10,10 +11,8 @@ module vending_machine_top #(
     input  wire btn_purchase,
     input  wire [1:0] sw_item,
     input  wire restock,
-    output wire [3:0] digit3,
-    output wire [3:0] digit2,
-    output wire [3:0] digit1,
-    output wire [3:0] digit0,
+    output wire [6:0] seg,          // 7-segment cathodes
+    output wire [3:0] an,           // 7-segment anodes
     output wire [3:0] stock_level,
     output wire [7:0] leds,
     output wire       audio_out
@@ -101,7 +100,12 @@ module vending_machine_top #(
         .leds(leds)
     );
 
-    // Display driver
+    // Display driver (BCD conversion)
+    wire [3:0] digit3;
+    wire [3:0] digit2;
+    wire [3:0] digit1;
+    wire [3:0] digit0;
+
     display_driver display(
         .credit(credit),
         .price(price),
@@ -111,6 +115,18 @@ module vending_machine_top #(
         .digit2(digit2),
         .digit1(digit1),
         .digit0(digit0)
+    );
+
+    // 7-segment display multiplexer for Basys 3
+    seg7_mux seg7(
+        .clk(clk),
+        .rst(rst),
+        .digit3(digit3),
+        .digit2(digit2),
+        .digit1(digit1),
+        .digit0(digit0),
+        .seg(seg),
+        .an(an)
     );
 
     // Sound feedback

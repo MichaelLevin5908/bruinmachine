@@ -10,10 +10,8 @@ module vending_machine_top_tb;
     reg [1:0] sw_item = 0;
     reg restock = 0;
 
-    wire [3:0] digit3;
-    wire [3:0] digit2;
-    wire [3:0] digit1;
-    wire [3:0] digit0;
+    wire [6:0] seg;
+    wire [3:0] an;
     wire [3:0] stock_level;
     wire [7:0] leds;
     wire       audio_out;
@@ -30,10 +28,8 @@ module vending_machine_top_tb;
         .btn_purchase(btn_purchase),
         .sw_item(sw_item),
         .restock(restock),
-        .digit3(digit3),
-        .digit2(digit2),
-        .digit1(digit1),
-        .digit0(digit0),
+        .seg(seg),
+        .an(an),
         .stock_level(stock_level),
         .leds(leds),
         .audio_out(audio_out)
@@ -44,6 +40,9 @@ module vending_machine_top_tb;
     defparam dut.db1.CNTR_MAX = 2;
     defparam dut.db2.CNTR_MAX = 2;
     defparam dut.db3.CNTR_MAX = 2;
+
+    // Speed up display refresh for simulation
+    defparam dut.seg7.REFRESH_COUNT = 10;
 
     integer errors = 0;
 
