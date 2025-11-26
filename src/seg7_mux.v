@@ -1,6 +1,8 @@
 // 7-segment display multiplexer for Basys 3 board.
 // Cycles through 4 digits at ~1kHz refresh rate.
-module seg7_mux (
+module seg7_mux #(
+    parameter integer REFRESH_COUNT = 100000  // ~1kHz refresh (100MHz / 100000)
+) (
     input  wire        clk,
     input  wire        rst,
     input  wire [3:0]  digit3,  // leftmost digit
@@ -10,8 +12,7 @@ module seg7_mux (
     output wire [6:0]  seg,     // cathodes (active-low)
     output reg  [3:0]  an       // anodes (active-low)
 );
-    // Clock divider for ~1kHz refresh (100MHz / 100000 = 1kHz)
-    localparam REFRESH_COUNT = 100000;
+    // Clock divider for display refresh
     reg [16:0] refresh_counter;
     reg [1:0] digit_select;
 
