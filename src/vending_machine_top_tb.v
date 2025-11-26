@@ -64,7 +64,7 @@ module vending_machine_top_tb;
         end
     endtask
 
-    task check(input bit condition, input [256:0] message);
+    task check(input condition, input [256:0] message);
         begin
             if (!condition) begin
                 errors = errors + 1;
