@@ -1,5 +1,5 @@
 // Top-level module connecting the vending machine controller blocks.
-// Designed for Basys 3 board with Vivado 2023.2.
+// Designed for Basys 3 board with Vivado 2023.2 and Pmod AMP2 audio amplifier.
 module vending_machine_top #(
     parameter integer DEBOUNCE_MAX = 25000
 ) (
@@ -15,7 +15,8 @@ module vending_machine_top #(
     output wire [3:0] an,           // 7-segment anodes
     output wire [3:0] stock_level,
     output wire [7:0] leds,
-    output wire       audio_out
+    output wire       audio_out,    // Pmod AMP2 audio input
+    output wire       audio_sd      // Pmod AMP2 shutdown (active-low, 1=enabled)
 );
     // Debounce buttons
     wire db_coin1;
@@ -138,4 +139,7 @@ module vending_machine_top #(
         .item_select(sw_item),
         .audio_out(audio_out)
     );
+
+    // Enable Pmod AMP2 (shutdown is active-low, so 1 = amplifier enabled)
+    assign audio_sd = 1'b1;
 endmodule
