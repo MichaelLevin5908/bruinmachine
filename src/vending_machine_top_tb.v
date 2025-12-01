@@ -46,6 +46,9 @@ module vending_machine_top_tb;
     // Speed up display refresh for simulation
     defparam dut.seg7.REFRESH_COUNT = 10;
 
+    // Speed up thank you message for simulation (10 cycles instead of 100M)
+    defparam dut.ctrl.THANK_YOU_CYCLES = 10;
+
     integer errors = 0;
 
     task pulse_coin5;
@@ -80,29 +83,29 @@ module vending_machine_top_tb;
         repeat (3) @(posedge clk);
         rst <= 0;
 
-        $display("=== Scenario 1: Insert $5, buy item0 (cost $3) ===");
+        $display("=== Scenario 1: Insert $5, buy item0 (cost $4) ===");
         sw_item <= 2'd0;
         pulse_coin5();
         repeat (6) @(posedge clk);
         check(dut.ctrl.credit == 8'd5, "Credit increments to $5 after coin insertion");
 
         pulse_purchase();
-        repeat (8) @(posedge clk);
+        repeat (20) @(posedge clk);  // More cycles to account for THANK_YOU state
 
         check(dut.ctrl.vend_pulse === 1'b0, "Vend pulse completed without sticking high");
-        check(dut.ctrl.credit == 8'd2, "Credit reduced to $2 after vend and change");
-        check(dut.ctrl.change_due == 8'd2, "Change due of $2 computed");
+        check(dut.ctrl.credit == 8'd1, "Credit reduced to $1 after vend and change");
+        check(dut.ctrl.change_due == 8'd1, "Change due of $1 computed");
         check(dut.inv.stock_level == 4'd4, "Inventory decremented for item0");
 
         $display("=== Scenario 2: Attempt purchase with insufficient funds ===");
-        sw_item <= 2'd2; // price 6 when stock high
+        sw_item <= 2'd2; // price 6 when stock high (or 7 if stock low)
         pulse_purchase();
         @(posedge dut.ctrl.error_flag);
         @(posedge clk);
         check(dut.ctrl.state == 3'd5, "FSM enters ERROR state on insufficient funds");
         @(posedge clk);
         check(dut.ctrl.state == 3'd0, "FSM returns to IDLE after error handling");
-        check(dut.ctrl.credit == 8'd2, "Credit preserved after failed purchase");
+        check(dut.ctrl.credit == 8'd1, "Credit preserved after failed purchase");
 
         if (errors == 0) begin
             $display("All testbench checks passed.");

@@ -1,7 +1,7 @@
 // Maps item selections to prices with optional dynamic adjustment based on inventory.
 module price_lookup #(
-    parameter [7:0] PRICE0 = 8'd3,
-    parameter [7:0] PRICE1 = 8'd4,
+    parameter [7:0] PRICE0 = 8'd4,
+    parameter [7:0] PRICE1 = 8'd5,
     parameter [7:0] PRICE2 = 8'd6,
     parameter [7:0] PRICE3 = 8'd7,
     parameter integer LOW_STOCK_THRESHOLD = 2,

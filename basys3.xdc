@@ -6,15 +6,22 @@ set_property -dict { PACKAGE_PIN W5   IOSTANDARD LVCMOS33 } [get_ports clk]
 create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports clk]
 
 ## Switches
+## SW0-SW2: Item selection (rubric specifies SW0-SW2 for item select)
 set_property -dict { PACKAGE_PIN V17   IOSTANDARD LVCMOS33 } [get_ports {sw_item[0]}]
 set_property -dict { PACKAGE_PIN V16   IOSTANDARD LVCMOS33 } [get_ports {sw_item[1]}]
+## SW3: Restock function
 set_property -dict { PACKAGE_PIN W16   IOSTANDARD LVCMOS33 } [get_ports restock]
-set_property -dict { PACKAGE_PIN W17   IOSTANDARD LVCMOS33 } [get_ports rst]
+## SW15: Reset (rubric specifies SW15 for reset)
+set_property -dict { PACKAGE_PIN R2    IOSTANDARD LVCMOS33 } [get_ports rst]
 
-## Buttons (active-high)
+## Buttons (active-high) - rubric mapping
+## BTN0 = BTNC (center) = Insert $1
 set_property -dict { PACKAGE_PIN U18   IOSTANDARD LVCMOS33 } [get_ports btn_coin1]
+## BTN1 = BTNU (up) = Insert $2
 set_property -dict { PACKAGE_PIN T18   IOSTANDARD LVCMOS33 } [get_ports btn_coin2]
+## BTN2 = BTNL (left) = Insert $5
 set_property -dict { PACKAGE_PIN W19   IOSTANDARD LVCMOS33 } [get_ports btn_coin5]
+## BTN3 = BTNR (right) = Purchase
 set_property -dict { PACKAGE_PIN T17   IOSTANDARD LVCMOS33 } [get_ports btn_purchase]
 
 ## LEDs

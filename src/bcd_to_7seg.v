@@ -16,6 +16,7 @@ module bcd_to_7seg (
             4'h7: seg = 7'b1111000; // 7
             4'h8: seg = 7'b0000000; // 8
             4'h9: seg = 7'b0010000; // 9
+            4'hA: seg = 7'b1010000; // r (for "Err")
             4'hD: seg = 7'b0100001; // d (for "Done")
             4'hE: seg = 7'b0000110; // E (for "Err")
             default: seg = 7'b1111111; // blank
