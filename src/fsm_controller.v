@@ -49,7 +49,8 @@ module fsm_controller #(
             change_due       <= 0;
             thank_you_counter <= 0;
         end else begin
-            vend_pulse       <= (state == STATE_VEND);
+            // Default: clear one-cycle pulses
+            vend_pulse       <= 1'b0;
             error_flag       <= 1'b0;
             change_returning <= 1'b0;
 
@@ -81,6 +82,7 @@ module fsm_controller #(
                     end
                 end
                 STATE_VEND: begin
+                    vend_pulse        <= 1'b1;
                     state             <= STATE_THANK;
                     thank_you_counter <= 0;
                 end
