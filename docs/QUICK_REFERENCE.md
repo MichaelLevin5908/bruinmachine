@@ -168,8 +168,9 @@ report_drc -file drc.txt
 | Segment F | CF | V5 | seg[5] |
 | Segment G | CG | U7 | seg[6] |
 | **Audio (Pmod JA)** | | | |
-| Audio Out | JA1 | J1 | audio_out |
-| Shutdown (Enable) | JA3 | J2 | audio_sd |
+| Audio Out | JA3 | J2 | audio_out |
+| Shutdown (Enable) | JA1 | J1 | audio_sd |
+| Gain Select | JA2 | L2 | audio_gain |
 
 ## Item Codes and Prices
 

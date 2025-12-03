@@ -15,8 +15,9 @@ module vending_machine_top #(
     output wire [3:0] an,           // 7-segment anodes
     output wire [3:0] stock_level,
     output wire [7:0] leds,
-    output wire       audio_out,    // Pmod AMP2 audio input
-    output wire       audio_sd      // Pmod AMP2 shutdown (active-low, 1=enabled)
+    output wire       audio_out,    // Pmod AMP2 audio input (JA3)
+    output wire       audio_sd,     // Pmod AMP2 shutdown (active-low, 1=enabled)
+    output wire       audio_gain    // Pmod AMP2 gain select (0 = low gain, 1 = high gain)
 );
     // Debounce buttons
     wire db_coin1;
@@ -140,6 +141,8 @@ module vending_machine_top #(
         .audio_out(audio_out)
     );
 
-    // Enable Pmod AMP2 (shutdown is active-low, so 1 = amplifier enabled)
-    assign audio_sd = 1'b1;
+    // Enable Pmod AMP2 (shutdown is active-low, so 1 = amplifier enabled).
+    // Hold gain low for 6dB to avoid overdriving the speaker.
+    assign audio_sd   = 1'b1;
+    assign audio_gain = 1'b0;
 endmodule
