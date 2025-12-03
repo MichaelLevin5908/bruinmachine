@@ -316,6 +316,17 @@ If the error persists, the constraint might be running too early. This usually r
 
 **Solution**: This is expected behavior for output ports. No action needed.
 
+### No sound from Pmod AMP2 on Basys 3
+
+**Symptom**: The design bitstream programs successfully, but the speaker connected through Pmod AMP2 is completely silent.
+
+**Cause**: Earlier constraint files accidentally swapped the AMP2 pins: the square-wave audio output was wired to JA1 (the amplifier's `!SHUTDOWN` pin), while the constant enable signal was tied to JA3 (the `AIN` audio input). That mapping continually toggled the shutdown line and held the actual audio input at a DC level, so the amplifier never reproduced the tone.
+
+**Solution**:
+1. Verify the XDC maps `audio_out` to JA3 (`PACKAGE_PIN J2`) and `audio_sd` to JA1 (`PACKAGE_PIN J1`).
+2. Ensure `audio_sd` is tied high in `vending_machine_top.v` so the amplifier is enabled, and keep `audio_gain` low for 6dB gain.
+3. Re-run synthesis/implementation and reprogram the bitstream; the tone generator in `sound_module.v` will then drive the correct AMP2 input.
+
 ## Programming Errors
 
 ### Error: Board not detected

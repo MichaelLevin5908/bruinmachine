@@ -91,8 +91,9 @@ The vending machine controller consists of the following modules:
 - **7-Segment Display**: Anodes (U2, U4, V4, W4), Cathodes (W7, W6, U8, V8, U5, V5, U7)
 - **LEDs 0-7**: Status indicators (U16, E19, U19, V19, W18, U15, U14, V14)
 - **LEDs 12-15**: Stock level (V13, V3, W3, U3)
-- **Audio Output**: Pmod JA Pin 1 (J1)
-- **Audio Enable**: Pmod JA Pin 3 (J2)
+- **Audio Output**: Pmod JA Pin 3 (J2)
+- **Audio Enable (Shutdown\_n)**: Pmod JA Pin 1 (J1)
+- **Audio Gain**: Pmod JA Pin 2 (L2) — held low for 6dB gain
 
 ## Usage
 
