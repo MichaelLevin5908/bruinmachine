@@ -42,9 +42,9 @@ module display_driver (
         if (state == STATE_ERROR) begin
             // "Err"
             digit3 = 4'hE;
-            digit2 = 4'hE;
-            digit1 = 4'h0;
-            digit0 = 4'h0;
+            digit2 = 4'hA;  // 'r'
+            digit1 = 4'hA;  // 'r'
+            digit0 = 4'hF;  // blank
         end else if (state == STATE_CHANGE && change_due != 0) begin
             to_bcd(change_due, hundreds, tens, ones);
             digit3 = hundreds;

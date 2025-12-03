@@ -1,6 +1,7 @@
 // Main vending machine FSM controlling credit, vending, and error handling.
 module fsm_controller #(
-    parameter integer MAX_CREDIT = 15
+    parameter integer MAX_CREDIT = 15,
+    parameter integer THANK_YOU_CYCLES = 100000000  // 1 second at 100MHz
 ) (
     input  wire        clk,
     input  wire        rst,
@@ -28,6 +29,7 @@ module fsm_controller #(
     wire can_purchase;
     wire [7:0] next_credit_calc;
     wire [7:0] change_calc_val;
+    reg [31:0] thank_you_counter;
 
     change_calc calc(
         .credit(credit),
@@ -45,6 +47,7 @@ module fsm_controller #(
             error_flag       <= 1'b0;
             change_returning <= 1'b0;
             change_due       <= 0;
+            thank_you_counter <= 0;
         end else begin
             vend_pulse       <= (state == STATE_VEND);
             error_flag       <= 1'b0;
@@ -78,10 +81,16 @@ module fsm_controller #(
                     end
                 end
                 STATE_VEND: begin
-                    state      <= STATE_THANK;
+                    state             <= STATE_THANK;
+                    thank_you_counter <= 0;
                 end
                 STATE_THANK: begin
-                    state <= STATE_CHANGE;
+                    if (thank_you_counter >= THANK_YOU_CYCLES - 1) begin
+                        state <= STATE_CHANGE;
+                        thank_you_counter <= 0;
+                    end else begin
+                        thank_you_counter <= thank_you_counter + 1;
+                    end
                 end
                 STATE_CHANGE: begin
                     change_due       <= change_calc_val;
