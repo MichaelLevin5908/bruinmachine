@@ -57,9 +57,9 @@ set_property -dict { PACKAGE_PIN U3    IOSTANDARD LVCMOS33 } [get_ports {stock_l
 
 ## Pmod AMP2 Audio Amplifier (Pmod JA connector)
 ## Pin 1 (AIN - Audio Input): Square wave audio signal
-set_property -dict { PACKAGE_PIN J1    IOSTANDARD LVCMOS33 } [get_ports audio_out]
+set_property -dict { PACKAGE_PIN J1    IOSTANDARD LVCMOS33  DRIVE 12  SLEW FAST } [get_ports audio_out]
 ## Pin 3 (!SHUTDOWN - Active-low shutdown): Tied high to enable amplifier
-set_property -dict { PACKAGE_PIN J2    IOSTANDARD LVCMOS33 } [get_ports audio_sd]
+set_property -dict { PACKAGE_PIN J2    IOSTANDARD LVCMOS33  DRIVE 12 } [get_ports audio_sd]
 
 ## Configuration options
 set_property CONFIG_VOLTAGE 3.3 [current_design]
