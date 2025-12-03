@@ -5,11 +5,11 @@ module seg7_mux #(
 ) (
     input  wire        clk,
     input  wire        rst,
-    input  wire [3:0]  digit3,  // leftmost digit
-    input  wire [3:0]  digit2,
-    input  wire [3:0]  digit1,
-    input  wire [3:0]  digit0,  // rightmost digit
-    output wire [6:0]  seg,     // cathodes (active-low)
+    input  wire [6:0]  digit3,  // leftmost digit (7-segment encoded)
+    input  wire [6:0]  digit2,
+    input  wire [6:0]  digit1,
+    input  wire [6:0]  digit0,  // rightmost digit (7-segment encoded)
+    output reg  [6:0]  seg,     // cathodes (active-low)
     output reg  [3:0]  an       // anodes (active-low)
 );
     // Clock divider for display refresh
@@ -41,21 +41,14 @@ module seg7_mux #(
         endcase
     end
 
-    // Select current digit BCD value
-    reg [3:0] current_digit;
+    // Multiplex 7-segment encoded digits
     always @(*) begin
         case (digit_select)
-            2'd0: current_digit = digit0;
-            2'd1: current_digit = digit1;
-            2'd2: current_digit = digit2;
-            2'd3: current_digit = digit3;
-            default: current_digit = 4'h0;
+            2'd0: seg = digit0;
+            2'd1: seg = digit1;
+            2'd2: seg = digit2;
+            2'd3: seg = digit3;
+            default: seg = 7'b1111111; // All segments off
         endcase
     end
-
-    // BCD to 7-segment decoder
-    bcd_to_7seg decoder (
-        .bcd(current_digit),
-        .seg(seg)
-    );
 endmodule
