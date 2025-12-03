@@ -54,9 +54,9 @@ module display_driver (
         end else if (state == STATE_THANK) begin
             // "Done"
             digit3 = 4'hD;
-            digit2 = 4'h0;
-            digit1 = 4'hE;
-            digit0 = 4'h0;
+            digit2 = 4'hC;
+            digit1 = 4'hB;
+            digit0 = 4'hE;
         end else begin
             digit3 = hundreds;
             digit2 = tens;
