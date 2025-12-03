@@ -83,7 +83,7 @@ module vending_machine_top_tb;
         repeat (3) @(posedge clk);
         rst <= 0;
 
-        $display("=== Scenario 1: Insert $5, buy item0 (cost $4) ===");
+        $display("=== Scenario 1: Insert $5, buy item0 (cost $3) ===");
         sw_item <= 2'd0;
         pulse_coin5();
         repeat (6) @(posedge clk);
