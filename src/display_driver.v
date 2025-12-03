@@ -38,6 +38,10 @@ module display_driver (
                 4'hD: to_7seg = 7'b0100001; // 'd' (for "Done")
                 4'hE: to_7seg = 7'b0000110; // 'E' (for "Err" or "donE")
                 4'hF: to_7seg = 7'b1111111; // blank (all segments off)
+                // Additional letters for "done" message
+                // Using values 10-12 (decimal) for o, n, e_lower
+                4'd10: to_7seg = 7'b1011100; // 'o' (segments c, d, e, g)
+                4'd11: to_7seg = 7'b1010100; // 'n' (segments c, e, g)
 
                 default: to_7seg = 7'b1111111; // All segments off for undefined inputs
             endcase
@@ -82,11 +86,11 @@ module display_driver (
             digit1 = to_7seg(ones);
             digit0 = to_7seg(4'd0);
         end else if (state == STATE_THANK) begin
-            // "Done"
-            digit3 = to_7seg(4'hD);  // 'd'
-            digit2 = to_7seg(4'h0);  // 'o' (displayed as 0)
-            digit1 = to_7seg(4'hE);  // 'E'
-            digit0 = to_7seg(4'h0);  // (displayed as 0, making "do0E")
+            // "done"
+            digit3 = to_7seg(4'hD);   // 'd'
+            digit2 = to_7seg(4'd10);  // 'o'
+            digit1 = to_7seg(4'd11);  // 'n'
+            digit0 = to_7seg(4'hE);   // 'e'
         end else begin
             digit3 = to_7seg(hundreds);
             digit2 = to_7seg(tens);
