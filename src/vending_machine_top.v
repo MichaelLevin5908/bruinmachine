@@ -101,11 +101,11 @@ module vending_machine_top #(
         .leds(leds)
     );
 
-    // Display driver (BCD conversion)
-    wire [3:0] digit3;
-    wire [3:0] digit2;
-    wire [3:0] digit1;
-    wire [3:0] digit0;
+    // Display driver (7-segment encoded)
+    wire [6:0] digit3;
+    wire [6:0] digit2;
+    wire [6:0] digit1;
+    wire [6:0] digit0;
 
     display_driver display(
         .credit(credit),
