@@ -1,5 +1,5 @@
 // Top-level module connecting the vending machine controller blocks.
-// Designed for Basys 3 board with Vivado 2023.2 and Pmod AMP2 audio amplifier.
+// Designed for Basys 3 board with Vivado 2023.2 and VGA display output.
 module vending_machine_top #(
     parameter integer DEBOUNCE_MAX = 25000
 ) (
@@ -15,8 +15,12 @@ module vending_machine_top #(
     output wire [3:0] an,           // 7-segment anodes
     output wire [3:0] stock_level,
     output wire [7:0] leds,
-    output wire       audio_out,    // Pmod AMP2 audio input
-    output wire       audio_sd      // Pmod AMP2 shutdown (active-low, 1=enabled)
+    // VGA outputs
+    output wire [3:0] vga_r,
+    output wire [3:0] vga_g,
+    output wire [3:0] vga_b,
+    output wire       vga_hs,
+    output wire       vga_vs
 );
     // Debounce buttons
     wire db_coin1;
@@ -88,7 +92,7 @@ module vending_machine_top #(
         .change_due(change_due)
     );
 
-    wire [7:0] leds_internal;
+    // LED feedback
     led_feedback leds_out(
         .clk(clk),
         .rst(rst),
@@ -99,17 +103,8 @@ module vending_machine_top #(
         .change_due(change_due),
         .stock_available(stock_available),
         .item_select(sw_item),
-        .leds(leds_internal)
+        .leds(leds)
     );
-
-    // Slow down audio_out for LED visibility (divide by ~2^20 for ~95Hz blink)
-    reg [19:0] audio_vis_counter;
-    always @(posedge clk or posedge rst)
-        if (rst) audio_vis_counter <= 0;
-        else if (audio_out) audio_vis_counter <= audio_vis_counter + 1'b1;
-
-    // LED[7] = audio_active (ON in test mode), LED[6] = slow blink if audio toggling
-    assign leds = {audio_active, audio_vis_counter[19], leds_internal[5:0]};
 
     // Display driver (7-segment encoded)
     wire [6:0] digit3;
@@ -140,20 +135,33 @@ module vending_machine_top #(
         .an(an)
     );
 
-    // Sound feedback
-    wire audio_active;
-    sound_module sound(
+    // VGA Controller
+    wire [9:0] pixel_x;
+    wire [9:0] pixel_y;
+    wire video_on;
+
+    vga_controller vga_ctrl(
         .clk(clk),
         .rst(rst),
-        .vend_event(vend_pulse),
-        .error_event(error_flag),
-        .item_select(sw_item),
-        .audio_out(audio_out),
-        .audio_active(audio_active)  // Will be HIGH in test mode
+        .pixel_x(pixel_x),
+        .pixel_y(pixel_y),
+        .video_on(video_on),
+        .hsync(vga_hs),
+        .vsync(vga_vs)
     );
 
-    // Debug: LED[7] shows audio_active, LED[6] shows audio_out signal (will blink fast if working)
-
-    // Enable Pmod AMP2 (shutdown is active-low, so 1 = amplifier enabled)
-    assign audio_sd = 1'b1;
+    // VGA Balance Display
+    vga_balance_display vga_disp(
+        .clk(clk),
+        .rst(rst),
+        .credit(credit),
+        .price(price),
+        .state(state),
+        .pixel_x(pixel_x),
+        .pixel_y(pixel_y),
+        .video_on(video_on),
+        .vga_r(vga_r),
+        .vga_g(vga_g),
+        .vga_b(vga_b)
+    );
 endmodule
