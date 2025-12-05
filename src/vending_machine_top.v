@@ -88,6 +88,7 @@ module vending_machine_top #(
         .change_due(change_due)
     );
 
+    wire [7:0] leds_internal;
     led_feedback leds_out(
         .clk(clk),
         .rst(rst),
@@ -98,8 +99,17 @@ module vending_machine_top #(
         .change_due(change_due),
         .stock_available(stock_available),
         .item_select(sw_item),
-        .leds(leds)
+        .leds(leds_internal)
     );
+
+    // Slow down audio_out for LED visibility (divide by ~2^20 for ~95Hz blink)
+    reg [19:0] audio_vis_counter;
+    always @(posedge clk or posedge rst)
+        if (rst) audio_vis_counter <= 0;
+        else if (audio_out) audio_vis_counter <= audio_vis_counter + 1'b1;
+
+    // LED[7] = audio_active (ON in test mode), LED[6] = slow blink if audio toggling
+    assign leds = {audio_active, audio_vis_counter[19], leds_internal[5:0]};
 
     // Display driver (7-segment encoded)
     wire [6:0] digit3;
@@ -131,14 +141,18 @@ module vending_machine_top #(
     );
 
     // Sound feedback
+    wire audio_active;
     sound_module sound(
         .clk(clk),
         .rst(rst),
         .vend_event(vend_pulse),
         .error_event(error_flag),
         .item_select(sw_item),
-        .audio_out(audio_out)
+        .audio_out(audio_out),
+        .audio_active(audio_active)  // Will be HIGH in test mode
     );
+
+    // Debug: LED[7] shows audio_active, LED[6] shows audio_out signal (will blink fast if working)
 
     // Enable Pmod AMP2 (shutdown is active-low, so 1 = amplifier enabled)
     assign audio_sd = 1'b1;

@@ -14,7 +14,8 @@ module sound_module #(
     input  wire       vend_event,
     input  wire       error_event,
     input  wire [1:0] item_select,
-    output reg        audio_out
+    output reg        audio_out,
+    output wire       audio_active  // LED indicator: HIGH when audio should be playing
 );
     // Test mode: 440Hz continuous tone for debugging
     localparam integer TEST_FREQ_HZ = 440;
@@ -46,6 +47,9 @@ module sound_module #(
 
     // Test mode counter
     reg [31:0] test_counter;
+
+    // Audio active indicator (for LED debugging)
+    assign audio_active = TEST_MODE ? 1'b1 : active;
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
