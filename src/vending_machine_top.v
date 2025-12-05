@@ -1,5 +1,5 @@
 // Top-level module connecting the vending machine controller blocks.
-// Designed for Basys 3 board with Vivado 2023.2 and Pmod AMP2 audio amplifier.
+// Designed for Basys 3 board with Vivado 2023.2 and VGA display output.
 module vending_machine_top #(
     parameter integer DEBOUNCE_MAX = 25000
 ) (
@@ -15,8 +15,12 @@ module vending_machine_top #(
     output wire [3:0] an,           // 7-segment anodes
     output wire [3:0] stock_level,
     output wire [7:0] leds,
-    output wire       audio_out,    // Pmod AMP2 audio input
-    output wire       audio_sd      // Pmod AMP2 shutdown (active-low, 1=enabled)
+    // VGA outputs
+    output wire [3:0] vga_r,
+    output wire [3:0] vga_g,
+    output wire [3:0] vga_b,
+    output wire       vga_hs,
+    output wire       vga_vs
 );
     // Debounce buttons
     wire db_coin1;
@@ -88,6 +92,7 @@ module vending_machine_top #(
         .change_due(change_due)
     );
 
+    // LED feedback
     led_feedback leds_out(
         .clk(clk),
         .rst(rst),
@@ -130,16 +135,33 @@ module vending_machine_top #(
         .an(an)
     );
 
-    // Sound feedback
-    sound_module sound(
+    // VGA Controller
+    wire [9:0] pixel_x;
+    wire [9:0] pixel_y;
+    wire video_on;
+
+    vga_controller vga_ctrl(
         .clk(clk),
         .rst(rst),
-        .vend_event(vend_pulse),
-        .error_event(error_flag),
-        .item_select(sw_item),
-        .audio_out(audio_out)
+        .pixel_x(pixel_x),
+        .pixel_y(pixel_y),
+        .video_on(video_on),
+        .hsync(vga_hs),
+        .vsync(vga_vs)
     );
 
-    // Enable Pmod AMP2 (shutdown is active-low, so 1 = amplifier enabled)
-    assign audio_sd = 1'b1;
+    // VGA Balance Display
+    vga_balance_display vga_disp(
+        .clk(clk),
+        .rst(rst),
+        .credit(credit),
+        .price(price),
+        .state(state),
+        .pixel_x(pixel_x),
+        .pixel_y(pixel_y),
+        .video_on(video_on),
+        .vga_r(vga_r),
+        .vga_g(vga_g),
+        .vga_b(vga_b)
+    );
 endmodule
