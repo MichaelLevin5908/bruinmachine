@@ -14,8 +14,11 @@ module vending_machine_top_tb;
     wire [3:0] an;
     wire [3:0] stock_level;
     wire [7:0] leds;
-    wire       audio_out;
-    wire       audio_sd;
+    wire [3:0] vga_r;
+    wire [3:0] vga_g;
+    wire [3:0] vga_b;
+    wire       vga_hs;
+    wire       vga_vs;
 
     // Clock generation
     always #5 clk = ~clk; // 100 MHz equivalent
@@ -33,8 +36,11 @@ module vending_machine_top_tb;
         .an(an),
         .stock_level(stock_level),
         .leds(leds),
-        .audio_out(audio_out),
-        .audio_sd(audio_sd)
+        .vga_r(vga_r),
+        .vga_g(vga_g),
+        .vga_b(vga_b),
+        .vga_hs(vga_hs),
+        .vga_vs(vga_vs)
     );
 
     // Shorten debounce delay for simulation
