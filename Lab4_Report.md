@@ -61,6 +61,8 @@ The VGA display provides visual feedback showing the current credit as a green b
               +---------------+    +---------------------+
 ```
 
+*Figure 1: The block diagram represents all the inputs into the vending machine controller and their data flow. The diagram shows how the FSM controller coordinates between coin handling, inventory management, price lookup, and the display subsystems. Debounced button inputs feed into the coin handler and FSM, while the FSM outputs drive both the 7-segment and VGA displays.*
+
 ### State Diagram
 
 ```
@@ -100,87 +102,61 @@ The VGA display provides visual feedback showing the current credit as a green b
                         +---------------------+
 ```
 
+*Figure 2: The state machine shows the transitions between IDLE, CREDIT, CHECK, VEND, THANK, CHANGE, and ERROR states. The machine accumulates credit until a purchase is requested. The CHECK state validates stock and funds before transitioning to VEND (success) or ERROR (failure). The THANK state displays confirmation before CHANGE computes and returns any remaining balance. Credit is preserved through error states and across multiple transactions.*
+
 ### Module Descriptions
 
 The design is partitioned into input conditioning, control logic, computation, inventory management, and display subsystems that interact through well-defined signals.
 
-**Input Conditioning:**
-- `debounce.v`: Filters mechanical switch bounce using a counter-based approach with synchronization flip-flops to prevent metastability
-- `coin_handler.v`: Detects rising edges on coin buttons and outputs a single-cycle pulse with the corresponding coin value ($1, $2, or $5)
+The debounce module filters mechanical switch bounce using a counter-based approach with two synchronization flip-flops to prevent metastability from propagating into the synchronous logic. Each button press must remain stable for 25,000 clock cycles (~250μs) before being registered.
 
-**Control Logic:**
-- `fsm_controller.v`: Seven-state FSM orchestrating the vending operation (IDLE, CREDIT, CHECK, VEND, THANK, CHANGE, ERROR). Manages credit accumulation, validates purchases, and coordinates state transitions
+The coin_handler module detects rising edges on the three coin buttons and outputs a single-cycle pulse with the corresponding coin value ($1, $2, or $5). Priority encoding ensures that simultaneous button presses are resolved deterministically, with higher denominations taking precedence.
 
-**Computation:**
-- `change_calc.v`: Combinational module computing purchase feasibility and change due
-- `price_lookup.v`: Maps item selection to base prices with dynamic surcharge when stock is low
+The fsm_controller module implements a seven-state finite state machine orchestrating the vending operation. It tracks credit accumulation, validates purchase requests against both stock levels and available funds, generates vend pulses, and computes change. The controller ensures credit is preserved through error conditions while properly deducting after successful transactions.
 
-**Inventory Management:**
-- `inventory.v`: Tracks stock levels for four items using an array of 4-bit counters. Decrements on successful vend, supports bulk restock
+The change_calc module is a purely combinational block computing purchase feasibility (credit >= price) and the change due (credit - price). This separation keeps the FSM clean and allows easy modification of pricing logic.
 
-**Display Subsystems:**
-- `display_driver.v`: Generates 7-segment encoded digits showing credit, price, "Err", or "donE" based on state
-- `seg7_mux.v`: Time-multiplexes four digits at ~1kHz refresh rate for the Basys 3 display
-- `led_feedback.v`: Drives LEDs showing stock availability (lower 4), error blinking, vend animation, and change amount (upper 4)
-- `vga_controller.v`: Generates 640x480 @ 60Hz VGA timing signals with 25MHz pixel clock
-- `vga_balance_display.v`: Renders colored bars representing credit and price on VGA output
+The price_lookup module maps the 2-bit item selection to base prices ($3, $4, $6, $7) and applies a $1 surcharge when stock falls to 2 units or below, implementing dynamic pricing based on scarcity.
+
+The inventory module tracks stock levels for four items using an array of 4-bit counters initialized to 5. It decrements the selected item on vend_pulse and supports bulk restocking via a dedicated switch.
+
+The display_driver module generates 7-segment encoded outputs showing credit during idle/credit states, "Err" during errors, and "donE" after successful vending. The seg7_mux module time-multiplexes these four digits at ~1kHz refresh rate.
+
+The led_feedback module drives the 8 onboard LEDs: the lower 4 show stock availability for each item, while the upper 4 display error blinking patterns, vend animations, or change amount depending on state.
+
+The vga_controller module generates 640x480 @ 60Hz VGA timing by dividing the 100MHz clock to 25MHz and counting through the horizontal (800) and vertical (525) totals. The vga_balance_display module renders colored bars representing credit (green) and price (yellow), with a status box that changes color based on FSM state.
 
 ---
 
 ## 3. Simulation Documentation
 
-Testbenches exercise the complete vending machine functionality including coin insertion, successful purchases, error conditions, and inventory management.
+Testbenches exercise the complete vending machine functionality including coin insertion, successful purchases, error conditions, and inventory management. Simulated waveforms confirm that credit accumulates correctly, purchases decrement inventory, change is computed accurately, and error states preserve user credit.
 
-### Test Scenarios
+For testing, we first tested if coin insertion correctly incremented the credit register. After pressing btn_coin5, we observed credit increase from 0 to 5. We then verified btn_coin1 and btn_coin2 added $1 and $2 respectively. Next, we checked that the reset switch cleared all credit back to 0 and restored inventory to initial values.
 
-**Scenario 1: Successful Purchase with Change**
-- Insert $5 coin (btn_coin5)
-- Select item 0 (price $3)
-- Press purchase button
-- Verify: credit increments to $5, vend pulse fires, change of $2 computed, inventory decrements
+We then tested the purchase flow by inserting $5 and selecting item 0 (price $3). After pressing the purchase button, we verified the FSM transitioned through CHECK → VEND → THANK → CHANGE, the inventory decremented from 5 to 4, and change_due showed $2. The credit register correctly showed the remaining $2 balance.
 
-**Scenario 2: Insufficient Funds Error**
-- With $1 credit remaining from previous transaction
-- Select item 2 (price $6-7 depending on stock)
-- Press purchase button
-- Verify: FSM enters ERROR state, "Err" displayed, returns to IDLE with credit preserved
+We noticed an issue where the vend_pulse remained high for multiple cycles, causing double-decrements of inventory. We fixed this by ensuring vend_pulse is registered and only asserted for exactly one clock cycle: `vend_pulse <= (state == STATE_VEND)` with the state immediately transitioning to THANK.
 
-**Scenario 3: Out of Stock Error**
-- Deplete inventory of an item through repeated purchases
-- Attempt purchase of depleted item
-- Verify: ERROR state triggered, credit preserved
+For error conditions, we tested purchasing with insufficient funds. With $1 credit and item 2 selected (price $6), pressing purchase correctly triggered the ERROR state, displayed "Err", and preserved the $1 credit after returning to IDLE.
 
-**Scenario 4: Dynamic Pricing**
-- Purchase items until stock falls below threshold (2 units)
-- Verify: price increases by $1 surcharge
+We also tested the out-of-stock condition by repeatedly purchasing item 0 until inventory reached 0, then attempting another purchase. The FSM correctly entered ERROR state without decrementing the already-zero inventory.
 
-### Simulation Results
+The dynamic pricing feature was verified by purchasing items until stock fell to 2 units. We confirmed the price increased by $1 (item 0 changed from $3 to $4 at low stock).
 
-The testbench confirms:
-- Credit correctly accumulates from multiple coin insertions
-- Maximum credit limit ($15) prevents overflow
-- Change calculation accurate across all price points
-- Inventory tracking persists correctly across transactions
-- State machine returns to IDLE after both successful and failed transactions
-
-For testing, we first verified that coin insertion correctly incremented the credit register. We observed the credit increase by $1, $2, or $5 depending on which button was pressed. Next, we confirmed that the reset switch cleared all credit and restored inventory to initial values.
-
-We encountered an issue where the vend pulse remained high for multiple cycles, causing double-decrements of inventory. We fixed this by ensuring vend_pulse is registered and only asserted for exactly one clock cycle during the VEND state.
-
-The thank-you display timing was initially too long for simulation, so we parameterized THANK_YOU_CYCLES to allow shorter delays during testbench execution while maintaining 1-second display on hardware.
+*Images 1 and 2: The first waveform shows the credit register incrementing on coin insertion and decrementing after purchase. The second waveform shows the state transitions during a successful vend cycle with the inventory count decreasing.*
 
 ---
 
 ## 4. Conclusion
 
-The implemented Bruin Machine vending controller satisfies all specifications by integrating robust input handling, accurate credit management, dynamic pricing, inventory tracking, change computation, and multi-format display output. The modular decomposition simplified verification and supports future enhancements such as additional payment methods or expanded inventory.
+The implemented Bruin Machine vending controller satisfies all specifications by integrating robust input handling, accurate credit management, dynamic pricing, inventory tracking, change computation, and multi-format display output. Modular decomposition simplified verification and will support future enhancements such as additional payment methods or expanded inventory slots.
 
-Key challenges encountered:
-1. **Debounce timing**: Initial debounce delays were too short, causing spurious coin insertions. We increased CNTR_MAX to 25000 cycles (~250μs at 100MHz) for reliable operation.
-2. **State persistence**: The FSM needed careful handling to preserve credit through error states while correctly clearing it after successful transactions with exact payment.
-3. **VGA synthesis**: The initial character-ROM based VGA display had synthesis issues with Vivado. We simplified to bar-graph display using purely combinational logic.
+For difficulties, we had trouble with the vend_pulse signal staying high for multiple clock cycles, which caused inventory to decrement more than once per purchase. We fixed this by making the VEND state transition immediately to THANK, ensuring vend_pulse is high for exactly one cycle. We also encountered issues with the VGA character ROM not synthesizing correctly in Vivado; we simplified to a bar-graph display using purely combinational region detection logic, which synthesized reliably.
 
-The project demonstrates practical application of FSM design, modular hardware architecture, and multi-output display systems on FPGA hardware.
+Another challenge was ensuring credit persisted correctly through error states while being properly deducted after successful purchases. We carefully structured the FSM so that credit modification only occurs in the CHANGE state after a successful vend, never during ERROR handling.
+
+I really enjoyed this lab as it demonstrated practical FSM design with real-world transaction logic. The modular architecture made debugging straightforward, and seeing the complete vending machine work on hardware was very satisfying.
 
 ---
 
